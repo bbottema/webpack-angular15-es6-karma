@@ -18,7 +18,7 @@ module.exports = {
 			inject: 'body',
 			minify: false
 		}),
-		new webpack.optimize.CommonsChunkPlugin('vendor', 'js/vendor.js'),
+		// new webpack.optimize.CommonsChunkPlugin('vendor', 'js/vendor.js'),
 		new webpack.SourceMapDevToolPlugin({
 			filename: '[file].map',
 			exclude: /vendor/
@@ -33,10 +33,13 @@ module.exports = {
 	module: {
 		loaders: [
 			{
-				test: /\.js$/,
-				loader: 'babel-loader',
-				include: path.join(__dirname, 'app'),
-				exclude: path.join(__dirname, 'node_modules')
+			    test: /\.js$/,
+			    loader: 'babel-loader',
+			    include: [
+			        path.join(__dirname, 'app'),
+			        path.join(__dirname, 'test')
+			    ],
+			    exclude: path.join(__dirname, 'node_modules')
 			},
 			{
 				test: /\.html$/,

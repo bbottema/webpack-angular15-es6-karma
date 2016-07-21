@@ -1,15 +1,23 @@
-import jasmine from 'jasmine-core';
+import angular from 'angular';
+import 'angular-mocks';
 
-import readableNumberFilter from 'readableNumber.filter';
+import testModule from '../../../../app/src/global/index';
 
-var describe = jasmine.describe;
-var it = jasmine.it;
-var expect = jasmine.expect;
+const { module, inject } = angular.mock;
 
-describe('readableNumber Filter', function () {
+describe('readableNumber Filter', () => {
+	beforeEach(module(testModule));
+
+	let $filter;
+
+	beforeEach(inject((_$filter_) => {
+		$filter = _$filter_;
+	}));
+
 	describe('readableNumber Filter formatting', () => {
-		it('it should support optional arguments', function () {
-			expect(readableNumberFilter("50.3")).toEqual("50,30");
+		it('it should support optional arguments', () => {
+			const result = $filter('readableNumber')("50.3");
+			expect(result).toEqual("50,30");
 		});
 	});
 });
