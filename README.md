@@ -12,3 +12,7 @@ npm run test
 ```
 
 Build runs fine, test doesn't.
+
+> Chrome 51.0.2704 (Windows 7 0.0.0) ERROR
+> Uncaught SyntaxError: Unexpected token import
+> at the_path/test_entry.js:41
