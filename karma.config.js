@@ -15,7 +15,7 @@ module.exports = function (config) {
 	});
 
 	function configureWebpack(webpackConfigFunction) {
-		var webpackConfig = require('./webpack.config');
+		var webpackConfig = require('./make-webpack-config')({ cover: true });
 		webpackConfig.entry = undefined; // karma will pass the proper argument for entry
 		return webpackConfig;
 	}

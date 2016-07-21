@@ -3,6 +3,24 @@ var webpack = require('webpack');
 var HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = function (options) {
+	var plugins = [];
+
+	plugins.push(new HtmlWebpackPlugin({
+		template: './app/index.html',
+		inject: 'body',
+		minify: false
+	}));
+
+	if(!options.cover) {
+		plugins.push(new webpack.optimize.CommonsChunkPlugin('vendor', 'js/vendor.js'));
+	}
+
+	plugins.push(new webpack.SourceMapDevToolPlugin({
+			filename: '[file].map',
+			exclude: /vendor/
+		})
+	);
+
 	return {
 		debug: true,
 		entry: {
@@ -13,18 +31,7 @@ module.exports = function (options) {
 			path: path.join(__dirname, 'dist'),
 			filename: 'js/[name].js'
 		},
-		plugins: [
-			new HtmlWebpackPlugin({
-				template: './app/index.html',
-				inject: 'body',
-				minify: false
-			}),
-			// new webpack.optimize.CommonsChunkPlugin('vendor', 'js/vendor.js'),
-			new webpack.SourceMapDevToolPlugin({
-				filename: '[file].map',
-				exclude: /vendor/
-			})
-		],
+		plugins: plugins,
 		resolve: {
 			extensions: ['', '.js'],
 			alias: {
