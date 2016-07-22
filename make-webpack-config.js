@@ -2,65 +2,8 @@ var path = require('path');
 var webpack = require('webpack');
 var HtmlWebpackPlugin = require('html-webpack-plugin');
 
-module.exports = function (options) {
-	var plugins = [];
-
-	plugins.push(new HtmlWebpackPlugin({
-		template: './app/index.html',
-		inject: 'body',
-		minify: false
-	}));
-
-	if (!options.cover) {
-		plugins.push(new webpack.optimize.CommonsChunkPlugin('vendor', 'js/vendor.js'));
-	}
-
-	plugins.push(new webpack.SourceMapDevToolPlugin({
-			filename: '[file].map',
-			exclude: /vendor/
-		})
-	);
-
-	let jsLoaders;
-
-	if (options.cover) {
-		jsLoaders = [
-			// transpile all files except testing sources with babel as usual
-			{
-				test: /\.js$/,
-				loader: 'babel',
-				include: [
-					path.join(__dirname, 'test'),
-				],
-				exclude: path.join(__dirname, 'node_modules')
-			},
-			// transpile and instrument only testing sources with babel-istanbul
-			{
-				test: /\.js$/,
-				loader: 'babel-istanbul',
-				include: [
-					path.join(__dirname, 'app'),
-				],
-				exclude: path.join(__dirname, 'node_modules'),
-				query: {
-					// cacheDirectory: true
-				},
-			},
-		];
-	} else {
-		jsLoaders = [
-			{
-				test: /\.js$/,
-				loader: 'babel',
-				include: [
-					path.join(__dirname, 'app'),
-					path.join(__dirname, 'test')
-				],
-				exclude: path.join(__dirname, 'node_modules')
-			}
-		];
-	}
-	return {
+module.exports = function (testMode) {
+	var webpackConfig = {
 		debug: true,
 		entry: {
 			app: ['./app/index.js'],
@@ -70,7 +13,7 @@ module.exports = function (options) {
 			path: path.join(__dirname, 'dist'),
 			filename: 'js/[name].js'
 		},
-		plugins: plugins,
+		plugins: determinePlugins(testMode),
 		resolve: {
 			extensions: ['', '.js'],
 			alias: {
@@ -78,15 +21,70 @@ module.exports = function (options) {
 			}
 		},
 		module: {
-			loaders: jsLoaders.concat([
+			loaders: determineJsLoaders(testMode).concat([
 				{
 					test: /\.html$/,
 					loader: 'html-loader'
 				}
-			]),
+			])
 		},
 		resolveLoader: {
 			root: path.join(__dirname, 'node_modules')
 		}
 	};
-}
+
+	if (testMode) {
+		webpackConfig.entry = undefined; // karma will pass the proper argument for entry
+	}
+
+	return webpackConfig;
+
+	function determinePlugins(testMode) {
+		var plugins = [
+			new HtmlWebpackPlugin({
+				template: './app/index.html',
+				inject: 'body',
+				minify: false
+			}),
+			new webpack.SourceMapDevToolPlugin({
+				filename: '[file].map',
+				exclude: /vendor/
+			})
+		];
+		if (!testMode) {
+			plugins.push(new webpack.optimize.CommonsChunkPlugin('vendor', 'js/vendor.js'));
+		}
+		return plugins;
+	}
+
+	function determineJsLoaders(testMode) {
+		if (testMode) {
+			return [
+				{ // transpile all files except testing sources with babel as usual
+					test: /\.js$/,
+					loader: 'babel?cacheDirectory',
+					include: path.join(__dirname, 'test'),
+					exclude: path.join(__dirname, 'node_modules')
+				},
+				{ // transpile and instrument only testing sources with babel-istanbul
+					test: /\.js$/,
+					loader: 'babel-istanbul?cacheDirectory',
+					include: path.join(__dirname, 'app'),
+					exclude: path.join(__dirname, 'node_modules')
+				}
+			];
+		} else {
+			return [
+				{
+					test: /\.js$/,
+					loader: 'babel',
+					include: [
+						path.join(__dirname, 'app'),
+						path.join(__dirname, 'test')
+					],
+					exclude: path.join(__dirname, 'node_modules')
+				}
+			];
+		}
+	}
+};

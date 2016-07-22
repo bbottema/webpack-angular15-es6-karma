@@ -1,6 +1,9 @@
 module.exports = function (config) {
 	config.set({
-		browsers: ['Chrome'],
+		browsers: ['PhantomJS'],
+		phantomjsLauncher: {
+			exitOnResourceError: true // exit phantomjs on ResourceError (useful if karma exits without killing phantom)
+		},
 		coverageReporter: {
 			reporters: [
 				{ type: 'html', subdir: 'html' },
@@ -11,12 +14,6 @@ module.exports = function (config) {
 		frameworks: ['jasmine'],
 		preprocessors: { './tests.webpack.js': ['webpack'] },
 		reporters: ['progress', 'coverage'],
-		webpack: configureWebpack()
+		webpack: require('./make-webpack-config')(true)
 	});
-
-	function configureWebpack(webpackConfigFunction) {
-		var webpackConfig = require('./make-webpack-config')({ cover: true });
-		webpackConfig.entry = undefined; // karma will pass the proper argument for entry
-		return webpackConfig;
-	}
 };
