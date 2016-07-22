@@ -11,7 +11,7 @@ module.exports = function (options) {
 		minify: false
 	}));
 
-	if(!options.cover) {
+	if (!options.cover) {
 		plugins.push(new webpack.optimize.CommonsChunkPlugin('vendor', 'js/vendor.js'));
 	}
 
@@ -21,6 +21,45 @@ module.exports = function (options) {
 		})
 	);
 
+	let jsLoaders;
+
+	if (options.cover) {
+		jsLoaders = [
+			// transpile all files except testing sources with babel as usual
+			{
+				test: /\.js$/,
+				loader: 'babel',
+				include: [
+					path.join(__dirname, 'test'),
+				],
+				exclude: path.join(__dirname, 'node_modules')
+			},
+			// transpile and instrument only testing sources with babel-istanbul
+			{
+				test: /\.js$/,
+				loader: 'babel-istanbul',
+				include: [
+					path.join(__dirname, 'app'),
+				],
+				exclude: path.join(__dirname, 'node_modules'),
+				query: {
+					// cacheDirectory: true
+				},
+			},
+		];
+	} else {
+		jsLoaders = [
+			{
+				test: /\.js$/,
+				loader: 'babel',
+				include: [
+					path.join(__dirname, 'app'),
+					path.join(__dirname, 'test')
+				],
+				exclude: path.join(__dirname, 'node_modules')
+			}
+		];
+	}
 	return {
 		debug: true,
 		entry: {
@@ -39,21 +78,12 @@ module.exports = function (options) {
 			}
 		},
 		module: {
-			loaders: [
-				{
-					test: /\.js$/,
-					loader: 'babel-loader',
-					include: [
-						path.join(__dirname, 'app'),
-						path.join(__dirname, 'test')
-					],
-					exclude: path.join(__dirname, 'node_modules')
-				},
+			loaders: jsLoaders.concat([
 				{
 					test: /\.html$/,
 					loader: 'html-loader'
 				}
-			]
+			]),
 		},
 		resolveLoader: {
 			root: path.join(__dirname, 'node_modules')
